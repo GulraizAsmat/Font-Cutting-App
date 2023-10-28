@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">@color/color_black</color>
+    <color name="purple_700">@color/color_black</color>
+    <color name="teal_200">@color/color_black_shade_1</color>
+    <color name="teal_700">@color/color_black_shade_1</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!--    Customize Colors-->
+    <color name="color_bg">#FFFFFFFF</color>
+    <color name="color_green_shade_1">#3C8D7D</color>
+    <color name="color_green_shade_2">#1D303C</color>
+    <color name="color_green_shade_3">#00B19B</color>
+    <color name="color_purple_shade_1">#454865</color>
+    <color name="color_purple_shade_2">#898B9C</color>
+
+    <color name="color_blue_shade_1">#B3C2D6</color>
+    <color name="color_blue_shade_2">#347AE2</color>
+
+    <color name="color_gray_shade_1">#434343</color>
+    <color name="color_gray_shade_2">#F4F5FA</color>
+    <color name="color_gray_shade_3">#D3D3D3</color>
+
+    <color name="color_black">#000000</color>
+    <color name="color_black_shade_1">#1E1E1E</color>
+    <color name="color_black_shade_2">#731E1E1E</color>
+    <color name="color_orange_shade_1">#FD7B02</color>
+    <color name="color_orange_shade_2">#40FD7B02</color>
+    <color name="color_red_shade_1">#DA0404</color>
+
+
+
+</resources>
