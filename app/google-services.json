@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "191025661699",
+    "project_id": "fontapp-e4334",
+    "storage_bucket": "fontapp-e4334.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191025661699:android:dec86cb2e43d6d4a7dcb36",
+        "android_client_info": {
+          "package_name": "app.solo.fontapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPwVi6udi3hAk9RspahxtB8owUCImx1WM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

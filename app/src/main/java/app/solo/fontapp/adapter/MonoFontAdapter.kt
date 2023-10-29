@@ -41,12 +41,12 @@ class MonoFontAdapter(
 
         holder.binding.favouritesIcon.setOnClickListener {
 
-            listener.onAdapterItemClicked("font_selected",position)
+            listener.onAdapterItemClicked("mono_selected",position)
 
         }
         holder.binding.downloadIcon.setOnClickListener {
 
-            listener.onAdapterItemClicked("font_download",position)
+            listener.onAdapterItemClicked("mono_download",position)
 
         }
 
@@ -55,6 +55,13 @@ class MonoFontAdapter(
             listener.onAdapterItemClicked("edit",position)
 
         }
+
+        if(propertyItem.selected){
+            holder.binding.favouritesIcon.setImageResource(R.drawable.aa_selected_fav_filled_icon)
+        }else {
+            holder.binding.favouritesIcon.setImageResource(R.drawable.aa_selected_fav_filled_gray_icon)
+        }
+
         // Bind your data to the layout using data binding
         fontStyle(holder,position)
         holder.binding.executePendingBindings()
@@ -111,12 +118,12 @@ class MonoFontAdapter(
 
                 holder.binding.font.typeface = customFont
             }
-            8->{
+            9->{
                 val customFont = context.resources.getFont(R.font.spring)
 
                 holder.binding.font.typeface = customFont
             }
-            9->{
+            10->{
                 val customFont = context.resources.getFont(R.font.ziviliammonogram)
 
                 holder.binding.font.typeface = customFont

@@ -4,10 +4,8 @@
     package="app.solo.fontapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
 
     <application
         android:allowBackup="true"
@@ -19,6 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FontApp"
         tools:targetApi="31">
+        <activity
+            android:name=".ErrorActivity"
+            android:exported="false" />
         <activity
             android:name=".TextEditorActivity"
             android:exported="false" />
