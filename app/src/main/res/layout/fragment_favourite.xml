@@ -265,7 +265,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cl_fonts_type" >
+                app:layout_constraintTop_toBottomOf="@+id/cl_fonts_type">
 
 
                 <ImageView
@@ -284,9 +284,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/hellix_bold"
-                    android:textSize="@dimen/_16sdp"
-                    android:textColor="@color/color_black_shade_1"
                     android:text="No Favourite Yet"
+                    android:textColor="@color/color_black_shade_1"
+                    android:textSize="@dimen/_16sdp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/empty_icon" />
@@ -296,13 +296,13 @@
                     android:id="@+id/empty_disc"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/hellix_regular"
-                    android:textSize="@dimen/_12sdp"
                     android:layout_marginHorizontal="@dimen/_20sdp"
+                    android:fontFamily="@font/hellix_regular"
                     android:gravity="center_horizontal"
+                    android:text="Save your favourite fonts and find them here later"
 
                     android:textColor="@color/color_black_shade_1"
-                    android:text="Save your favourite fonts and find them here later"
+                    android:textSize="@dimen/_12sdp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/empty_title" />
@@ -313,16 +313,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_10sdp"
-                    android:text="Explore Font"
-                    android:textColor="@color/white"
-                    android:textAllCaps="false"
+                    android:background="@drawable/bg_btn"
                     android:fontFamily="@font/hellix_semibold"
                     android:paddingHorizontal="@dimen/_20sdp"
-                    android:background="@drawable/bg_btn"
+                    android:text="Explore Font"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/empty_disc" />
-
 
 
                 <com.google.android.gms.ads.AdView
@@ -337,9 +336,16 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
 
+                <androidx.constraintlayout.widget.Group
+                    android:id="@+id/group_empty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="explore_font,empty_disc,empty_title,empty_icon" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_bottom_bar"
@@ -349,7 +355,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:ignore="MissingConstraints">
-
 
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -432,8 +437,8 @@
                 android:id="@+id/view_top_bar"
                 android:layout_width="match_parent"
                 android:layout_height="0.4dp"
-                app:layout_constraintEnd_toEndOf="parent"
                 android:background="@color/color_black_shade_1"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <androidx.constraintlayout.widget.Guideline
@@ -443,8 +448,6 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.5" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/top_guideline"
