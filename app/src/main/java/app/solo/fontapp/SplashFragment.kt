@@ -35,26 +35,12 @@ class SplashFragment : Fragment() {
 
     private fun moveToNextScreen() {
         Handler(Looper.getMainLooper()).postDelayed({
-            checkFirebase()
+//            checkFirebase()
+            findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
         }, 1500)
 
 
     }
 
-    private fun checkFirebase() {
-        val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("isContinue")
-        dbRef.get().addOnSuccessListener {
-            Log.e("Splash", it.value.toString())
-            val value = it.value as Boolean
-            if(value) {
-                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
-            } else {
-                val intent = Intent(requireContext(), ErrorActivity::class.java)
-                startActivity(intent)
-                requireActivity().finish()
-            }
-        }.addOnFailureListener {
-            Log.e("Splash", it.message.toString())
-        }
-    }
+
 }

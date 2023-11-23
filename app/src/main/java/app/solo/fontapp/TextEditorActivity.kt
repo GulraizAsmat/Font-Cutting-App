@@ -1,36 +1,42 @@
 package app.solo.fontapp
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
+import android.content.res.AssetManager
 import android.graphics.*
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.provider.MediaStore
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
-import app.solo.fontapp.adapter.FontAdapter
 import app.solo.fontapp.adapter.MatchAdapter
-import app.solo.fontapp.adapter.MonoFontAdapter
 import app.solo.fontapp.databinding.ActivityTextEditorBinding
 import app.solo.fontapp.listeners.AdapterListener
 import app.solo.fontapp.models.ColorData
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import yuku.ambilwarna.AmbilWarnaDialog
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 import kotlin.collections.ArrayList
@@ -46,6 +52,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
     private var isDragging = false
     private var selectedType=true // draw =true ,cut =false
     private var data = false
+    var textData=""
 
 
         var colorList=ArrayList<ColorData>()
@@ -104,14 +111,16 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
 
             selectedFont()
             binding.outlineTextView.text=Const.fontName
+            textData=Const.fontName
             binding.outlineTextView.typeface = selectedFont()
         }
         else {
 
 
-            selectedMonoFont()
-            binding.textView.text=Const.fontName
-            binding.textView.typeface =  resources.getFont(R.font.adorefree)
+            textData=Const.fontName
+            binding.outlineTextView.text=Const.fontName
+            binding.outlineTextView.typeface =
+                selectedMonoFont()
         }
     }
 
@@ -322,12 +331,26 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
 
             selectedType=true
             binding.textView.visibility = View.GONE
-            binding.outlineTextView.text=Const.fontName
+            binding.outlineTextView.text=textData
             binding.outlineTextView.visibility = View.VISIBLE
 
+            if(Const.fontType){
+                binding.outlineTextView.typeface = selectedFont()
+            }else {
+                binding.outlineTextView.typeface = selectedMonoFont()
+            }
 
-            binding.outlineTextView.typeface = selectedFont()
 
+        }
+
+        binding.textView.setOnClickListener {
+            selectedType=false
+            bottomSheet()
+        }
+
+        binding.outlineTextView.setOnClickListener {
+            selectedType=true
+            bottomSheet()
         }
 
 
@@ -341,9 +364,15 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
             binding.drawBtn.setTextColor(getResources().getColor(R.color.black));
             binding.cut.setTextColor(getResources().getColor(R.color.white));
 
+            if(Const.fontType){
+                binding.textView.typeface =  selectedFont()
+                binding.textView.text=textData
 
-            binding.textView.typeface =  selectedFont()
-            binding.textView.text=Const.fontName
+            }else {
+                binding.textView.typeface =  selectedMonoFont()
+                binding.textView.text=textData
+
+            }
 
             cutFont()
 
@@ -430,13 +459,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
         }
 
         binding.downloadFontBtn.setOnClickListener {
-
-                        val constraintLayoutBitmap = captureConstraintLayoutAsBitmap()
-//             Do something with the captured bitmap
-
-            binding.imageView.setImageBitmap(constraintLayoutBitmap)
-            saveBitmapImage(constraintLayoutBitmap!!)
-
+                bottomSheetForDownload()
         }
 
 
@@ -501,10 +524,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
         binding.textView.setOutlineColor(R.color.white)
     }
 
-
     private fun captureConstraintLayoutAsBitmap(): Bitmap? {
-
-
         // Measure and layout the ConstraintLayout
         binding.outlineTextView.measure(
             View.MeasureSpec.makeMeasureSpec(
@@ -516,12 +536,13 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
                 View.MeasureSpec.EXACTLY
             )
         )
-        binding.outlineTextView.layout(
-            0,
-            0,
-            binding.outlineTextView.measuredWidth,
-            binding.outlineTextView.measuredHeight
-        )
+
+        // Calculate the center position for the TextView within the ConstraintLayout
+        val centerX = binding.outlineTextView.width / 2 - binding.outlineTextView.measuredWidth / 2
+        val centerY = binding.outlineTextView.height / 2 - binding.outlineTextView.measuredHeight / 2
+
+        // Set the layout position for the TextView to be centered
+        binding.outlineTextView.layout(centerX, centerY, centerX + binding.outlineTextView.measuredWidth, centerY + binding.outlineTextView.measuredHeight)
 
         // Create a Bitmap and a Canvas to draw the layout onto
         val bitmap =
@@ -538,9 +559,48 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
     }
 
 
+
+
+    private fun captureConstraintLayoutAsBitmapForCut(): Bitmap? {
+
+
+        // Measure and layout the ConstraintLayout
+        binding.textView.measure(
+            View.MeasureSpec.makeMeasureSpec(
+                binding.textView.width,
+                View.MeasureSpec.EXACTLY
+            ),
+            View.MeasureSpec.makeMeasureSpec(
+                binding.textView.height,
+                View.MeasureSpec.EXACTLY
+            )
+        )
+        binding.textView.layout(
+            0,
+            0,
+            binding.textView.measuredWidth,
+            binding.textView.measuredHeight
+        )
+
+        // Create a Bitmap and a Canvas to draw the layout onto
+        val bitmap =
+            Bitmap.createBitmap(
+                binding.textView.width,
+                binding.textView.height,
+                Bitmap.Config.ARGB_8888
+            )
+        val canvas = Canvas(bitmap)
+
+        // Draw the layout onto the Canvas
+        binding.textView.draw(canvas)
+        return bitmap
+    }
+
+
     /**Save Bitmap To Gallery
      * @param bitmap The bitmap to be saved in Storage/Gallery*/
     private fun saveBitmapImage(bitmap: Bitmap) {
+
         val timestamp = System.currentTimeMillis()
 
         //Tell the media scanner about the new file so that it is immediately available to the user.
@@ -549,7 +609,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
         values.put(MediaStore.Images.Media.DATE_ADDED, timestamp)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.Images.Media.DATE_TAKEN, timestamp)
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/" + "FOntAPp")
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/" + "FontApp")
             values.put(MediaStore.Images.Media.IS_PENDING, true)
             val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
             if (uri != null) {
@@ -565,7 +625,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
                     }
                     values.put(MediaStore.Images.Media.IS_PENDING, false)
                     contentResolver.update(uri, values, null, null)
-
+                    binding.progressBar.visibility=View.GONE
                     Toast.makeText(this, "Saved...", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
                     Log.e(TAG, "saveBitmapImage: ", e)
@@ -573,7 +633,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
             }
         } else {
             val imageFileFolder =
-                File(Environment.getExternalStorageDirectory().toString() + '/' + "FOntAPp")
+                File(Environment.getExternalStorageDirectory().toString() + '/' + "FontApp")
             if (!imageFileFolder.exists()) {
                 imageFileFolder.mkdirs()
             }
@@ -589,8 +649,15 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
                 }
                 values.put(MediaStore.Images.Media.DATA, imageFile.absolutePath)
                 contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-
+                binding.progressBar.visibility=View.GONE
                 Toast.makeText(this, "Saved...", Toast.LENGTH_SHORT).show()
+
+
+
+
+
+
+
             } catch (e: Exception) {
                 Log.e(TAG, "saveBitmapImage: ", e)
             }
@@ -602,7 +669,7 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
         colorRecyclerView()
         colorList()
         defaultData()
-        draggableTextView()
+//        draggableTextView()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -744,6 +811,288 @@ class TextEditorActivity : AppCompatActivity(),AdapterListener {
     }
 
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun bottomSheet(){
+
+        val dialog = BottomSheetDialog(this, R.style.BottomSheetDialogStyle)
+        val view = layoutInflater.inflate(R.layout.item_bottomsheet_home, null)
+//
+        val tickBtn = view.findViewById<ImageView>(R.id.icon_tick)
+        val crossBtn = view.findViewById<ImageView>(R.id.icon_cross)
+        val dta = view.findViewById<EditText>(R.id.et_data)
+
+
+        dta.setText(textData)
+
+            tickBtn.setOnClickListener {
+                Log.e("Tag213", "selectedType :: $selectedType")
+                if(selectedType){
+                    Log.e("tickBtn", "dta :: ${dta.text.toString()}")
+                    textData=dta.text.toString()
+
+                    binding.drawBtn.setBackgroundResource(R.drawable.bg_green_btn)
+                    binding.cut.setBackgroundResource(R.drawable.bg_white_btn)
+
+                    binding.drawBtn.setTextColor(getResources().getColor(R.color.white));
+                    binding.cut.setTextColor(getResources().getColor(R.color.black));
+
+                    selectedType=true
+                    binding.textView.visibility = View.GONE
+                    binding.outlineTextView.text=textData
+                    binding.outlineTextView.visibility = View.VISIBLE
+
+
+//                        binding.outlineTextView.typeface = selectedFont()
+
+
+
+                }
+                else {
+
+                    Log.e("tickBtn", "else dta :: ${dta.text.toString()}")
+                    textData=dta.text.toString()
+
+
+
+
+                    binding.drawBtn.setBackgroundResource(R.drawable.bg_white_btn)
+                    binding.cut.setBackgroundResource(R.drawable.bg_green_btn)
+
+                    binding.drawBtn.setTextColor(getResources().getColor(R.color.black));
+                    binding.cut.setTextColor(getResources().getColor(R.color.white));
+
+
+//                        binding.textView.typeface =  selectedMonoFont()
+                        binding.textView.text=textData
+
+
+
+                    cutFont()
+
+                }
+
+                dialog.dismiss()
+            }
+        crossBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private fun bottomSheetForDownload(){
+
+        val dialog = BottomSheetDialog(this, R.style.BottomSheetDialogStyle)
+        val view = layoutInflater.inflate(R.layout.item_bottomsheet_download, null)
+//
+        val downloadFont = view.findViewById<AppCompatButton>(R.id.download_font_btn_bottom)
+        val downloadImage = view.findViewById<AppCompatButton>(R.id.download_image_btn_bottom)
+        val closeBtn = view.findViewById<ImageView>(R.id.icon_tick)
+
+
+        downloadFont.setOnClickListener {
+
+            binding.progressBar.visibility=View.VISIBLE
+
+            Handler(Looper.getMainLooper()).postDelayed({
+
+            saveToDevice(Const.fontFile,Const.fontValue)
+
+            }, 1500)
+            dialog.dismiss()
+
+        }
+
+        downloadImage.setOnClickListener {
+            binding.progressBar.visibility=View.VISIBLE
+            if(selectedType){
+
+                captureConstraintLayoutAsBitmap()
+
+
+
+                drawBtn()
+
+
+
+                val constraintLayoutBitmap = captureConstraintLayoutAsBitmap()
+//             Do something with the captured bitmap
+
+                Handler(Looper.getMainLooper()).postDelayed({
+
+                binding.imageView.setImageBitmap(constraintLayoutBitmap)
+
+                saveBitmapImage(constraintLayoutBitmap!!)
+                }, 1500)
+
+            }
+            else {
+
+
+                val constraintLayoutBitmap =       captureConstraintLayoutAsBitmapForCut()
+//             Do something with the captured bitmap
+                drawCutBtn()
+
+
+
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.imageView.setImageBitmap(constraintLayoutBitmap)
+                    saveBitmapImage(constraintLayoutBitmap!!)
+                    cutFont()
+                }, 1500)
+
+            }
+
+
+
+            dialog.dismiss()
+
+
+        }
+        closeBtn.setOnClickListener {
+
+            dialog.dismiss()
+        }
+
+
+
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private fun drawBtn(){
+        binding.drawBtn.setBackgroundResource(R.drawable.bg_green_btn)
+        binding.cut.setBackgroundResource(R.drawable.bg_white_btn)
+
+        binding.drawBtn.setTextColor(getResources().getColor(R.color.white));
+        binding.cut.setTextColor(getResources().getColor(R.color.black));
+
+        selectedType=true
+        binding.textView.visibility = View.GONE
+        binding.outlineTextView.text=textData
+        binding.outlineTextView.visibility = View.VISIBLE
+
+        if(Const.fontType){
+            binding.outlineTextView.typeface = selectedFont()
+        }else {
+            binding.outlineTextView.typeface = selectedMonoFont()
+        }
+    }
+
+
+    private fun drawCutBtn(){
+        binding.drawBtn.setBackgroundResource(R.drawable.bg_white_btn)
+        binding.cut.setBackgroundResource(R.drawable.bg_green_btn)
+
+        binding.drawBtn.setTextColor(getResources().getColor(R.color.black));
+        binding.cut.setTextColor(getResources().getColor(R.color.white));
+
+        if(Const.fontType){
+            binding.textView.typeface =  selectedFont()
+            binding.textView.text=textData
+
+        }else {
+            binding.textView.typeface =  selectedMonoFont()
+            binding.textView.text=textData
+
+        }
+
+        cutFont()
+
+    }
+
+    fun getApplicationName(context: Context): String? {
+        val applicationInfo = context.applicationInfo
+        val stringId = applicationInfo.labelRes
+        return if (stringId == 0) applicationInfo.nonLocalizedLabel.toString() else context.getString(
+            stringId
+        )
+    }
+
+    private fun requestPermission(permission: String, requestCode: Int) {
+        ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+    }
+
+    private fun isPermissionGranted(): Boolean {
+        val permissionCheck =
+            ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        return permissionCheck == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun saveToDevice(fileName: String, dir: String) {
+        if (!isPermissionGranted()) {
+            requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, 10000)
+            return
+        }
+        val assetManager = this.assets as AssetManager
+
+        var inStream: InputStream? = null
+        var outStream: OutputStream? = null
+
+        try {
+
+            inStream = assetManager.open(fileName)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = this.contentResolver
+                val values = ContentValues()
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "application/x-font-ttf")
+                values.put(
+                    MediaStore.MediaColumns.RELATIVE_PATH,
+                    Environment.DIRECTORY_DOWNLOADS + "/" + getApplicationName(this) + "/$dir/"
+                )
+                val uri = resolver.insert(MediaStore.Files.getContentUri("external"), values)
+                uri?.let { it ->
+                    resolver.openOutputStream(it).use {
+                        // Write file
+                        val buffer = byteArrayOf(1024.toByte())
+                        var read: Int = inStream!!.read(buffer)
+                        while (inStream!!.read(buffer).also { read = it } !== -1) {
+                            it!!.write(buffer, 0, read)
+                        }
+//                    it?.write(someText.toByteArray(Charset.defaultCharset()))
+                        it?.close()
+                    }
+                }
+            } else {
+                val outDir =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + "/" + getApplicationName(
+                        this
+                    ) + "/$dir/"
+
+                val outFile = File(outDir, fileName)
+
+                outStream = FileOutputStream(outFile)
+
+                val buffer = byteArrayOf(1024.toByte())
+                var read: Int = inStream.read(buffer)
+                while (inStream.read(buffer).also { read = it } !== -1) {
+                    outStream.write(buffer, 0, read)
+                }
+            }
+
+            Log.e("HomeFrag", "File saved")
+            binding.progressBar.visibility=View.GONE
+            Toast.makeText(this, "$fileName saved", Toast.LENGTH_LONG).show()
+        } catch (e: IOException) {
+            Log.e("HomeFrag", "Error: ", e)
+        } finally {
+            inStream?.close()
+            inStream = null
+            outStream?.flush()
+            outStream?.close()
+            outStream = null
+        }
+    }
 }
 
 class OutlineTextView : AppCompatTextView {

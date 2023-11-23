@@ -9,9 +9,7 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.Editor
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
+import android.os.*
 import android.provider.MediaStore
 import android.system.Os.read
 import android.text.Editable
@@ -37,6 +35,8 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -58,6 +58,10 @@ class HomeFragment : Fragment(), AdapterListener, View.OnClickListener {
 
     val FONTS = "Fonts"
     val MONO = "Monogram"
+
+
+
+
 
     private val fontAdapter by lazy {
         FontAdapter(
@@ -120,9 +124,27 @@ class HomeFragment : Fragment(), AdapterListener, View.OnClickListener {
         // on below line we are loading our
         // ad view with the ad request
         binding.adView.loadAd(adRequest)
-//        interstitialAdManager()
+        interstitialAdManager()
 
 
+    }
+
+    private fun checkFirebase() {
+        val dbRef: DatabaseReference = FirebaseDatabase.getInstance().getReference("isContinue")
+        dbRef.get().addOnSuccessListener {
+            Log.e("Splash", it.value.toString())
+            val value = it.value as Boolean
+//            val value =false
+            if(value) {
+
+            } else {
+                val intent = Intent(requireContext(), ErrorActivity::class.java)
+                startActivity(intent)
+                requireActivity().finish()
+            }
+        }.addOnFailureListener {
+            Log.e("Splash", it.message.toString())
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -456,7 +478,9 @@ class HomeFragment : Fragment(), AdapterListener, View.OnClickListener {
             }
 
             Log.e("HomeFrag", "File saved")
+            binding.progressBar.visibility=View.GONE
             Toast.makeText(requireContext(), "$fileName saved", Toast.LENGTH_LONG).show()
+
         } catch (e: IOException) {
             Log.e("HomeFrag", "Error: ", e)
         } finally {
@@ -501,18 +525,29 @@ class HomeFragment : Fragment(), AdapterListener, View.OnClickListener {
             }
 
             "font_download" -> {
-                saveToDevice(displayList[position].assetName, FONTS)
+                binding.progressBar.visibility=View.VISIBLE
+
+                Log.e("Tag234","Font NAme :: "+displayList[position].assetName)
+                Log.e("Tag234", "Font  :: $FONTS")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    saveToDevice(displayList[position].assetName, FONTS)
+                }, 1500)
+
             }
 
             "mono_download" -> {
+                binding.progressBar.visibility=View.VISIBLE
+                Handler(Looper.getMainLooper()).postDelayed({
                 saveToDevice(displayList[position].assetName, MONO)
+                }, 1500)
             }
 
             "edit" -> {
 
                 Const.fontPos = position
                 Const.fontName = fontList[position].name
-                Const.fontName = fontList[position].name
+                Const.fontFile = fontList[position].assetName
+                Const.fontValue = FONTS
                 val intent = Intent(requireContext(), TextEditorActivity::class.java)
                 startActivity(intent)
             }
